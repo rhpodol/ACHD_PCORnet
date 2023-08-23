@@ -20,7 +20,7 @@
 /* to the location of auxililary files (e.g., code lists and formats; datdictdir), and the directory where the    */
 /* resulting files will be saved (outdatdir). */
 %let datdir=L:\Translational-Bost-Lab\CTSICN Biostat Group\John A\PCORNet Rare Diseases\DataSets\Query1_full;
-%let datdictdir=L:\Translational-Bost-Lab\CTSICN Biostat Group\John A\PCORNet Rare Diseases\DataDictionariesCodebook;
+%let datdictdir=L:\Translational-Bost-Lab\CTSICN Biostat Group\John A\PCORNet Rare Diseases\DataDictionariesCodebook\CodelistsFormat;
 %let outdatdir=L:\Translational-Bost-Lab\CTSICN Biostat Group\John A\PCORNet Rare Diseases\DataSets\Query1_full\ModifiedTables4Analysis;
 
 
@@ -38,13 +38,13 @@
 
 libname dict_dir "&datdictdir";
 libname q1_cddir "&datdir";
-libname q1_outdir "&outdatdir";
+libname outdir "&outdatdir";
 
-%include "datdictir\std_formats.sas";
+%include "&datdictdir\std_formats.sas";
 
 /* Import Keith's ID crosswalk file */
 data q1_pat_map;
-  infile "&q1_ldatdir\ACHD_Patient_Mapping.csv" delimiter = ','  firstobs=2;
+  infile "&datdir\ACHD_Patient_Mapping.csv" delimiter = ','  firstobs=2;
   informat UNIQUE_PATID best32. ;
   informat PATID $35.;
   informat DMID $7. ;
@@ -79,7 +79,7 @@ data finder;
 Run;
 
 /* Code Encounters for primary diagnosis */
-filename chdfile "L:\Translational-Bost-Lab\CTSICN Biostat Group\John A\PCORNet Rare Diseases\CodePrograms\achd_q01\infolder\chd_hierarchy.cpt";
+filename chdfile "&datdictdir\chd_hierarchy.cpt";
 
 proc cimport infile=chdfile library=work; run;
 
@@ -129,154 +129,10 @@ data chd_codelist;
  KEEP CONCEPT_ID CONCEPT_LABEL CONCEPT_SUBGRP CONCEPT_DESCRIPTION DX DX_TYPE DX_MODIFIER COMORBID_INDEX;
 Run;
 
-proc import datafile="&data_dict_dir\ACHD_CODELIST_MASTER_071723.xlsx" out=codelist dbms=xlsx replace;
- sheet="COMORBIDITY_CODES";
+proc import datafile="&datdictdir\ACHD_CODELIST_MASTER.xlsx" out=codelist dbms=xlsx replace;
+ sheet="COMORBIDITY";
 Run;
 
-data codelist;
- set codelist;
- format DX_MODIFIER $7.;
- DX_MODIFIER="";
-Run;
-
-data codelist;
- set codelist chd_codelist;
- if DX_TYPE="9" then DX_TYPE="09";
-Run;
-
-
-/** Evaluating if same encounter has more than one encounter id**/
-data encounter;
- set q1_cddir.encounter;
-Run;
-
-proc sort data=encounter;
- by datamartid patid admit_date;
-Run;
-
-ods results off;
-ods output OneWayFreqs=encounterid_date_freq_C3UCSF;
-proc freq data=encounter(where=(datamartid="C3UCSF"));
- by patid;
- table admit_date;
-Run;
-ods results on;
-
-ods results off;
-ods output OneWayFreqs=encounterid_date_freq_C6OCH;
-proc freq data=encounter(where=(datamartid="C6OCH"));
- by patid;
- table admit_date;
-Run;
-ods results on;
-
-ods results off;
-ods output OneWayFreqs=encounterid_date_freq_C7;
-proc freq data=encounter(where=(datamartid="C7CCHMC"|datamartid="C7CHCO"|datamartid="C7CHOP"|datamartid="C7NCH"));
- by datamartid patid ;
- table admit_date;
-Run;
-ods results on;
-
-ods results off;
-ods output OneWayFreqs=encounterid_date_freq_C8;
-proc freq data=encounter(where=(datamartid="C8COL"|datamartid="C8MSHS"|datamartid="C8NYU"|datamartid="C8WCM"));
- by datamartid patid;
- table admit_date;
-Run;
-ods results on;
-
-ods results off;
-ods output OneWayFreqs=encounterid_date_freq_C13;
-proc freq data=encounter(where=(datamartid="C13NCH"|datamartid="C13UFH"|datamartid="C13UMI"));
- by datamartid patid;
- table admit_date;
-Run;
-ods results on;
-
-ods results off;
-ods output OneWayFreqs=encounterid_date_freq_C15;
-proc freq data=encounter(where=(datamartid="C15HCOS"));
- by datamartid patid;
- table admit_date;
-Run;
-ods results on;
-
-ods results off;
-ods output OneWayFreqs=encounterid_date_freq_C16;
-proc freq data=encounter(where=(datamartid="C16AEOS"));
- by datamartid patid;
- table admit_date;
-Run;
-ods results on;
-
-data q1_mtdir.encounterid_date_freq_C3UCSF;
- format datamartid $7.;
- set encounterid_date_freq_C3UCSF;
- datamartid="C3UCSF";
-Run;
-
-data q1_mtdir.encounterid_date_freq_C6OCH;
- set encounterid_date_freq_C6OCH;
- format datamartid $7.;
- datamartid="C6OCH";
-Run;
-
-data q1_mtdir.encounterid_date_freq_C7;
- set encounterid_date_freq_c7;
-Run;
-
-data q1_mtdir.encounterid_date_freq_C8;
- set encounterid_date_freq_c8;
-Run;
-
-data q1_mtdir.encounterid_date_freq_C13;
- set encounterid_date_freq_c13;
-Run;
-
-data q1_mtdir.encounterid_date_freq_C15;
- set encounterid_date_freq_C15;
- format datamartid $7.;
- datamartid="C15HCOS";
-Run;
-
-data q1_mtdir.encounterid_date_freq_C16;
- set encounterid_date_freq_C16;
- format datamartid $7.;
- datamartid="C16AEOS";
-Run;
-
-data q1_mtdir.encounterid_date_freq;
- set q1_mtdir.encounterid_date_freq_C3UCSF q1_mtdir.encounterid_date_freq_C6OCH q1_mtdir.encounterid_date_freq_C7
-     q1_mtdir.encounterid_date_freq_C8 q1_mtdir.encounterid_date_freq_c13 q1_mtdir.encounterid_date_freq_c15
-     q1_mtdir.encounterid_date_freq_c16;
-Run;
-
-proc freq data=q1_mtdir.encounterid_date_freq;
- table datamartid*frequency;
-Run;
-
-proc sort data=q1_mtdir.encounterid_date_freq;
- by datamartid;
-Run;
-
-ods results off;
-ods output OneWayFreqs=rep_encid_freq;
-proc freq data=q1_mtdir.encounterid_date_freq;
- by datamartid;
- table frequency;
-Run;
-ods results on;
-
-proc sort data=rep_encid_freq;
- by datamartid;
-Run;
-
-proc means noprint sum data=rep_encid_freq(where=(Frequency>15));
- by datamartid;
- var Frequency2;
- output out=rep_encid_lg_freq sum=lg_rep_freq2;
-Run;
 
 /**  Creating ENC_TYPE2 so that ED visits are characterized as ED with no adjacent inpatient visit (IP) and ED with adjacent IP visit  **/
 proc sql;
