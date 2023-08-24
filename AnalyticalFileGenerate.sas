@@ -133,6 +133,9 @@ proc import datafile="&datdictdir\ACHD_CODELIST_MASTER.xlsx" out=codelist dbms=x
  sheet="COMORBIDITY";
 Run;
 
+proc freq data=codelist;
+ table code;
+Run;
 
 /**  Creating ENC_TYPE2 so that ED visits are characterized as ED with no adjacent inpatient visit (IP) and ED with adjacent IP visit  **/
 proc sql;
