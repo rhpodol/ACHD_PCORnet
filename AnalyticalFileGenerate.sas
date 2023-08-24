@@ -137,6 +137,8 @@ proc freq data=codelist;
  table code;
 Run;
 
+*****Trial***************;
+
 /**  Creating ENC_TYPE2 so that ED visits are characterized as ED with no adjacent inpatient visit (IP) and ED with adjacent IP visit  **/
 proc sql;
  create table ed_encounter as 
