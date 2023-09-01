@@ -129,16 +129,7 @@ data chd_codelist;
  KEEP CONCEPT_ID CONCEPT_LABEL CONCEPT_SUBGRP CONCEPT_DESCRIPTION DX DX_TYPE DX_MODIFIER COMORBID_INDEX;
 Run;
 
-proc import datafile="&datdictdir\ACHD_CODELIST_MASTER.xlsx" out=codelist dbms=xlsx replace;
- sheet="COMORBIDITY";
-Run;
 
-/*This is a test*/
-proc freq data=codelist;
- table code;
-Run;
-
-*****Trial***************;
 
 /**  Creating ENC_TYPE2 so that ED visits are characterized as ED with no adjacent inpatient visit (IP) and ED with adjacent IP visit  **/
 proc sql;
@@ -157,9 +148,13 @@ proc sql;
  where B.ENC_TYPE="IP" and B.ADMIT_DATE between A.ADMIT_DATE and A.discharge_date_p2;
 quit;
 
-proc freq data=ed_encounter;
+proc freq data=q1_cddir.encounter(where=(enc_type="ED"));
  table datamartid*discharge_disposition/missprint;
  table datamartid*discharge_status/missprint;
+Run;
+
+proc freq data=ed_ip_adj_encounter(where=(enc_type="ED"));
+ table datamartid;
 Run;
 
 proc freq data=q1_cddir.encounter;
@@ -818,3 +813,8 @@ proc sql;
  WHERE PDX="P" & CONCEPT_ID ^= "";
 Quit;
 
+
+/*** Comorbidity ***/
+proc import datafile="&datdictdir\ACHD_CODELIST_MASTER.xlsx" out=codelist dbms=xlsx replace;
+ sheet="COMORBIDITY";
+Run;
