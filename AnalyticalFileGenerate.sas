@@ -818,3 +818,5 @@ Quit;
 proc import datafile="&datdictdir\ACHD_CODELIST_MASTER.xlsx" out=codelist dbms=xlsx replace;
  sheet="COMORBIDITY";
 Run;
+
+/*** Import from Eureka ***/
